@@ -1,0 +1,15 @@
+SENT::﻿Baby_NOUN_0_<gender:0|lemma:﻿Baby|number:0|person:3|pos:0|token:﻿Baby|type:C|> Got&Back_NOUN_1_<gender:0|lemma:Got&Back|number:0|person:3|pos:1|token:Got&Back|type:P|> é_VERB_2_<gender:0|lemma:é|mode:0|number:0|person:0|pos:2|tense:0|token:é|type:0|> um_DT_3_<gender:0|lemma:um|number:0|person:0|pos:3|possessor:0|token:um|type:0|> hit_NOUN_4_<gender:0|lemma:hit|number:0|person:3|pos:4|token:hit|type:C|> de_PRP_5_<lemma:de|pos:5|token:de|type:0|> Sir&Mix-a-Lot_NOUN_6_<gender:0|lemma:Sir&Mix-a-Lot|number:0|person:3|pos:6|token:Sir&Mix-a-Lot|type:P|> que_PRO_7_<case:0|gender:0|lemma:que|number:0|person:0|politeness:0|pos:7|possessor:0|token:que|type:R|> faz_VERB_8_<gender:0|lemma:fazer|mode:0|number:0|person:0|pos:8|tense:0|token:faz|type:0|> parte_NOUN_9_<gender:0|lemma:parte|number:0|person:3|pos:9|token:parte|type:C|> do_PRP_10_<lemma:de|pos:10|token:do|type:0|> álbum_ADJ_11_<degree:0|function:0|gender:0|lemma:álbum|number:0|pos:11|token:álbum|type:0|> Mack&Daddy_NOUN_12_<gender:0|lemma:Mack&Daddy|number:0|person:3|pos:12|token:Mack&Daddy|type:P|> lançado_VERB_13_<gender:0|lemma:lançado|mode:P|number:0|person:0|pos:13|tense:0|token:lançado|type:0|> em_PRP_14_<lemma:em|pos:14|token:em|type:0|> 1992_CARD_15_<gender:0|lemma:@card@|number:P|person:0|pos:15|token:1992|> e_CONJ_16_<lemma:e|pos:16|token:e|type:0|> que_PRO_17_<case:0|gender:0|lemma:que|number:0|person:0|politeness:0|pos:17|possessor:0|token:que|type:R|> chegou_VERB_18_<gender:0|lemma:chegar|mode:0|number:0|person:0|pos:18|tense:0|token:chegou|type:0|> ao_PRP_19_<lemma:a|pos:19|token:ao|type:0|> numero_VERB_20_<gender:0|lemma:numerar|mode:0|number:0|person:0|pos:20|tense:0|token:numero|type:0|> uma_DT_21_<gender:0|lemma:uma|number:0|person:0|pos:21|possessor:0|token:uma|type:0|> na_PRP_22_<lemma:em|pos:22|token:na|type:0|> Billboard&Hot_NOUN_23_<gender:0|lemma:Billboard&Hot|number:0|person:3|pos:23|token:Billboard&Hot|type:P|> 100_CARD_24_<gender:0|lemma:@card@|number:P|person:0|pos:24|token:100|> ref_VERB_25_<gender:0|lemma:ref|mode:0|number:0|person:0|pos:25|tense:0|token:ref|type:0|> {_VERB_26_<gender:0|lemma:{|mode:0|number:0|person:0|pos:26|tense:0|token:{|type:0|> {_VERB_27_<gender:0|lemma:{|mode:0|number:0|person:0|pos:27|tense:0|token:{|type:0|> citar_VERB_28_<gender:0|lemma:citar|mode:N|number:0|person:0|pos:28|tense:0|token:citar|type:0|> ._SENT_29_<lemma:.|pos:29|token:.|> 
+(SubjL;é_VERB_2;﻿Baby_NOUN_0)
+(AdjnR;﻿Baby_NOUN_0;Got&Back_NOUN_1)
+(SpecL;hit_NOUN_4;um_DT_3)
+(DobjR;é_VERB_2;hit_NOUN_4)
+(CprepR/de_PRP_5;hit_NOUN_4;Sir&Mix-a-Lot_NOUN_6)
+(DobjR;é_VERB_2;que_PRO_7)
+(VSpecL;lançado_VERB_13;fazer_VERB_8)
+(DobjR;fazer_VERB_8;parte_NOUN_9)
+(AdjnL;Mack&Daddy_NOUN_12;álbum_ADJ_11)
+(CprepR/de_PRP_10;parte_NOUN_9;Mack&Daddy_NOUN_12)
+(CircR/em_PRP_14;lançado_VERB_13;@card@_CARD_15)
+(CircR/a_PRP_19;chegar_VERB_18;numerar_VERB_20)
+(VSpecL;citar_VERB_28;{_VERB_27)
+---

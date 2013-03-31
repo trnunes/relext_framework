@@ -1,0 +1,88 @@
+#permitir varias configs identificando-as através de ID
+minning:
+  enabled: 'yes'
+  target_relations: [ceo, chairperson, secretaryGeneral]
+  uri_pattern: "http://dbpedia.org/ontology/"
+  max_examples_quantity: 115
+  #separar os módulos por diretório
+  preprocessing:
+    tokenizer: DefaultTokenizer
+    text_cleaner: WikipediaTextCleaner
+    #text_cleaner: DefaultTextCleaner
+    radical_extractor: DefaultRadicalExtractor
+    sentence_extractor: OpenNLPSentenceExtractor
+  filters: [WikiLinkFilter]
+  db_config:
+    db: mysql
+    location: "jdbc:mysql://localhost:3306/unclassified_sentences_db?user=root&password=db@dm348"
+  relations_db_config:
+    db: sparql
+    location: "http://live.dbpedia.org/sparql"
+    
+dataset_generation:
+  enabled: 'no'
+  target_relations: [
+parent,
+birthPlace,
+series,
+draftTeam,
+location,
+language,
+developer,
+isPartOfMilitaryConflict,
+genre,
+headquarter,
+battle,
+manufacturer,
+builder,
+crosses,
+largestCity,
+keyPerson,
+relatedMeanOfTransportation,
+militaryUnit,
+leader,
+federalState,
+operator,
+parentCompany,
+archipelago,
+ground,
+assembly,
+publisher,
+employer,
+formerBandMember,
+trainer]
+  max_examples_quantity: 400
+  uri_pattern: "http://dbpedia.org/ontology/"
+  preprocessing:
+    tokenizer: DefaultTokenizer
+    text_cleaner: DefaultTextCleaner
+    radical_extractor: DefaultRadicalExtractor
+  filters: []
+  feature_extractors: [LexicalExtractor, ShortestPathExtractor, EntityTypesExtractor]
+  dataset_format: arff
+  dataset_name: en_test_400_3
+  dataset_folder: ./trainning_data
+  db_config:
+    db: mysql
+    location: "jdbc:mysql://localhost:3306/sentence_db?user=root&password=db@dm348"
+  
+trainning:
+  enabled: 'no'
+  dataset_folder: ./trainning_data
+  dataset_name: shortest_path
+  dataset_format: csv
+  classifier_folder: ./ml_models
+  classifier: WekaNaiveBayes
+  cross_validation_folds: 10
+  classifier_settings: ''
+  
+nlp:
+  parser: StanfordDependencyParser
+  grammar: lib/stanford-parser-2012-03-09/englishPCFG.ser.gz
+  
+information_extraction:
+  correference_analyser: WikipediaCorreferenceAnalyser
+  corpus: 
+    class: WikipediaCorpus
+    url: http://localhost/mediawiki/index.php
+    lang: en

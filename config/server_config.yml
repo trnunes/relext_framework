@@ -1,0 +1,49 @@
+minning:
+  enabled: 'yes'
+  target_relations: [owner, state, manufacturer]
+  uri_pattern: "http://dbpedia.org/ontology/"
+  max_examples_quantity: 115
+  preprocessing:
+    tokenizer: DefaultTokenizer
+    text_cleaner: DefaultTextCleaner
+    # text_cleaner: DefaultTextCleaner
+    radical_extractor: PortugueseRadicalExtractor
+    sentence_extractor: OpenNLPSentenceExtractor
+  filters: [WikiLinkFilter]
+  db_config:
+    db: mysql
+    location: "jdbc:mysql://localhost:3306/pt_ml_dataset?user=root&password=db@dm348"
+  relations_db_config:
+    db: sparql
+    location: "http://pt.dbpedia.org/sparql"
+  corpus: 
+    class: WikipediaCorpus
+    url: http://pt.wikipedia.org/wiki
+  
+dataset_generation:
+  enabled: 'no'
+  target_relations: [recordLabel, genre, associatedMusicalArtist, album, producer, birthPlace, occupation, musicalBand, award, album]  
+  max_examples_quantity: 300
+  uri_pattern: "http://dbpedia.org/ontology/"
+  preprocessing:
+    tokenizer: DefaultTokenizer
+    text_cleaner: DefaultTextCleaner
+    radical_extractor: PortugueseRadicalExtractor    
+  filters: []
+  feature_extractors: [LexicalExtractor]
+  dataset_format: csv
+  dataset_name: shortest_path
+  dataset_folder: ./trainning_data
+  db_config:
+    db: mysql
+    location: "jdbc:mysql://localhost:3306/pt_sentences_db?user=root&password=db@dm348"
+  
+trainning:
+  enabled: 'no'
+  dataset_folder: ./trainning_data
+  dataset_name: shortest_path
+  dataset_format: csv
+  classifier_folder: ./ml_models
+  classifier: WekaNaiveBayes
+  cross_validation_folds: 10
+  classifier_settings: ''

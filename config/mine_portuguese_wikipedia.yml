@@ -1,0 +1,51 @@
+#permitir varias configs identificando-as através de ID
+minning:
+  enabled: 'yes'
+  target_relations: [phylum]
+  uri_pattern: "http://dbpedia.org/ontology/"
+  max_examples_quantity: 115
+  #separar os módulos por diretório
+  preprocessing:
+    tokenizer: DefaultTokenizer
+    text_cleaner: WikipediaTextCleaner
+    # text_cleaner: DefaultTextCleaner
+    radical_extractor: PortugueseRadicalExtractor
+    sentence_extractor: OpenNLPSentenceExtractor
+  filters: [WikiLinkFilter]
+  db_config:
+    db: mysql
+    location: "jdbc:mysql://139.82.71.25:3306/pt_ml_dataset?user=root&password=db@dm348"
+  relations_db_config:
+    db: sparql
+    location: "http://pt.dbpedia.org/sparql"
+  corpus: 
+    class: WikipediaCorpus
+    url: http://pt.wikipedia.org/wiki
+  
+dataset_generation:
+  enabled: 'no'
+  target_relations: [recordLabel, genre, associatedMusicalArtist, album, producer, composer, musicalBand, award, language, format, instrument, birthPlace]  
+  max_examples_quantity: 10
+  uri_pattern: "http://dbpedia.org/ontology/"
+  preprocessing:
+    tokenizer: DefaultTokenizer
+    text_cleaner: DefaultTextCleaner
+    radical_extractor: DefaultRadicalExtractor    
+  filters: []
+  feature_extractors: [LexicalExtractor]
+  dataset_format: csv
+  dataset_name: caso3
+  dataset_folder: ./trainning_data
+  db_config:
+    db: mysql
+    location: "jdbc:mysql://localhost:3306/sentence_db?user=root&password=db@dm348"
+  
+trainning:
+  enabled: 'no'
+  dataset_folder: ./trainning_data
+  dataset_name: caso3
+  dataset_format: csv
+  classifier_folder: ./ml_models
+  classifier: WekaNaiveBayes
+  cross_validation_folds: 10
+  classifier_settings: ''
