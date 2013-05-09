@@ -132,10 +132,33 @@ module Repositories
       ps = @conn.prepareStatement(sql_query)
       for i in(0..parameter_values.size-1)
         ps.setString(i+1, parameter_values[i])
-      end			
+    end
+      puts ps.to_s
 			rs = ps.executeUpdate()
 			rs
-		end
+	end
+  
+    def save_unclassified_sentence(sentence, property)
+      id = UUIDTools::UUID.random_create.to_s
+      text = sentence.text      
+      pe = sentence.principal_entity
+      types_pe = sentence.principal_entity.types
+      types_se = sentence.secondary_entity.types
+      se = sentence.secondary_entity      
+          
+      query = "insert into sentences values(?, ?, ?, ?, ?, ?, ? )"
+      
+      execute_update(query, [id, text, pe.label, se.label,  pe.id, se.id, property])
+      
+      types_pe.each{|type| 
+        types_query = "insert into uri_classes values(?, ? )"
+        execute_update(types_query, [pe.id, type])
+      }
+      types_se.each{|type| 
+        types_query = "insert into uri_classes values(?, ? )"
+        execute_update(types_query, [se.id, type])
+      }      
+    end
     
     def find_all_gov_nodes
       query = "select distinct gov from dependencies"
@@ -151,24 +174,27 @@ module Repositories
       conn = JavaSql::DriverManager.getConnection("jdbc:mysql://localhost:3306/sentence_db?user=root&password=db@dm348")
       path_query = "select path from sentence_paths where type = 'SHORTEST-PATH'"
       stmt = conn.createStatement
-			rs = execute_query(path_query)
+#			rs = execute_query(path_query)
+      rs = stmt.executeQuery(path_query)
       path_list = []      
       while rs.next do
         path = rs.getString(1)
         path_list << path.split(",")
       end
+      puts "PATH LIST: #{path_list.size}"
       return path_list
     end
     
     def find_all_classes(pattern=nil)
-      conn = JavaSql::DriverManager.getConnection("jdbc:mysql://localhost:3306/pt_sentences_db?user=root&password=db@dm348")
+      conn = JavaSql::DriverManager.getConnection("jdbc:mysql://localhost:3306/sentence_db?user=root&password=db@dm348")
       
       stmt = conn.createStatement
 			
       classes_query = "select distinct class from uri_classes"
       classes_query << " where class like '%#{pattern}%'" if pattern
-													
-			rs = execute_query(classes_query)
+		  	
+#			rs = execute_query(classes_query)
+      rs = stmt.executeQuery(classes_query)
 			dbpedia_ont_classes = []
 			while rs.next do
 				dbpedia_ont_classes << rs.getString(1)
@@ -271,7 +297,7 @@ module Repositories
     
     def find_sentence_by_relation_and_offset(relation, offset)      
 			sql = "select * from sentences s where s.property like '%#{relation}' and offset > #{offset}
-        and s.id in (select stc_id from sentence_paths)"      
+       and s.id in (select stc_id from sentence_paths)"      
       puts sql
 			mount_sentence_list(execute_query(sql))
 		end
@@ -289,6 +315,9 @@ module Repositories
     def find_entity(id)
       entity = Model::Entity.new(id)
       entity.types = find_entity_types(id)
+      if entity.types.empty?
+        return nil
+      end
       entity
     end
     

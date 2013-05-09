@@ -34,7 +34,8 @@ module FeatureExtraction
 		attributes << 'property'
 		
 		attributes
-	end
+end
+
 	class FeatureExtractor
     attr_accessor :radical_extractor, :corref_analyser, :parser
     
@@ -130,6 +131,10 @@ module FeatureExtraction
 		end
 		
 		def extract(sentence, include_response = false)
+#      dep_list = @repository.find_dependency_list(sentence).map{|td| [td.dep.label, td.gov.label]}.flatten.uniq;
+#      path = @repository.find_first_shortest_path(sentence)
+#      puts path.join("")
+#      puts dep_list.inspect
       # puts "extracting feature for : #{sentence.relation}"
 			attributes = get_attributes
       puts "LEXICAL ATTR SIZE: #{attributes.size}"
@@ -202,12 +207,17 @@ module FeatureExtraction
 		end
     
     def get_attributes
-			@attributes ||= @repository.find_all_shortest_paths.flatten.map{|attr|        
-        attr = "->" << attr if !attr.include?("-")          
-        word = attr.gsub("->", "").gsub("<-", "")        
-        attr.gsub(word, word.stem).downcase
-      }.uniq
-      @attributes
+#			@attributes ||= @repository.find_all_shortest_paths.flatten.map{|attr|        
+#        attr = "->" << attr if !attr.include?("-")          
+#        word = attr.gsub("->", "").gsub("<-", "")        
+#        attr.gsub(word, word.stem.removeaccents).downcase
+#      }.uniq
+#      @attributes
+       @attributes ||= @repository.find_all_shortest_paths.map{|path_list|
+        path_list[0] = "EP"
+        path_list.join("")
+       }.uniq
+       @attributes
 		end
     
     def select_subject(tdl)
@@ -231,12 +241,13 @@ module FeatureExtraction
         end
       end
       if ep != nil && se != nil
-      dijkstra = Graph::Dijkstra.new()
-      # computing the undirected shortest path
-      path, direction_hash = NLP.compute_shortest_path(tdl, ep, se, dijkstra)
-      @repository.save_path(path.map{|node|direction_hash[node]+node.label.to_s}, sentence, "SHORTEST-PATH")
-      FeatureExtraction.log(" SHORTEST PATH: #{path.map{|node|direction_hash[node]+node.label.to_s}.join}")      
+        dijkstra = Graph::Dijkstra.new()
+        # computing the undirected shortest path
+        path, direction_hash = NLP.compute_shortest_path(tdl, ep, se, dijkstra)
+        @repository.save_path(path.map{|node|direction_hash[node]+node.label.to_s}, sentence, "SHORTEST-PATH")
+        FeatureExtraction.log(" SHORTEST PATH: #{path.map{|node|direction_hash[node]+node.label.to_s}.join}")      
       end
+      path
     end
     
     def find_principal_entity(tdl)
@@ -271,17 +282,25 @@ module FeatureExtraction
       puts "FINDING PATH"
       path = @repository.find_first_shortest_path(sentence)      
       path ||= calculate_shortest_path(sentence)
-      puts "PATH: #{path.inspect}"
-      puts "TRYING TO SET FEATURE"
-      path.each{|word_and_direction|        
-        word_and_direction = "->" << word_and_direction if !word_and_direction.include?("-")
-        word_and_direction.downcase!
-        word = word_and_direction.gsub("->", "").gsub("<-", "")        
-        word_and_direction.gsub(word, word.stem)
-        index = attributes.index(word_and_direction)
-        puts "#{index}: "+word_and_direction
-				feature_vector[index] = 1 if index        
-			}
+      path[0] = "EP"
+      path_feature = path.join("")
+#      puts "PATH: #{path.inspect}"
+#      puts "TRYING TO SET FEATURE"
+#      path.each{|word_and_direction|        
+#        word_and_direction = "->" << word_and_direction if !word_and_direction.include?("-")
+#        word_and_direction.downcase!
+#        word = word_and_direction.gsub("->", "").gsub("<-", "")        
+#        word_and_direction.gsub!(word, word.stem.removeaccents)
+#        index = attributes.index(word_and_direction)
+#        puts "#{index}: "+word_and_direction
+#				feature_vector[index] = 1 if index        
+#			}
+      index = attributes.index(path_feature)
+      if(index)
+        feature_vector[index] = 1
+      else
+         puts "NO PATH: #{path_feature}"
+      end
       puts "VECTOR SIZE: " + feature_vector.size.to_s
       puts "END TRYING TO SET FEATURE"
       feature_vector

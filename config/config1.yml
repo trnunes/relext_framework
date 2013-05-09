@@ -1,10 +1,10 @@
-#permitir varias configs identificando-as através de ID
+#permitir varias configs identificando-as atravï¿½s de ID
 minning:
-  enabled: 'yes'
+  enabled: 'no'
   target_relations: [ceo, chairperson, secretaryGeneral]
   uri_pattern: "http://dbpedia.org/ontology/"
   max_examples_quantity: 115
-  #separar os módulos por diretório
+  #separar os mï¿½dulos por diretï¿½rio
   preprocessing:
     tokenizer: DefaultTokenizer
     text_cleaner: WikipediaTextCleaner
@@ -20,47 +20,39 @@ minning:
     location: "http://live.dbpedia.org/sparql"
     
 dataset_generation:
-  enabled: 'no'
+  enabled: 'yes'
   target_relations: [
+producer,
+isPartOf,
+writer,
+region,
+award,
+musicalBand,
+riverMouth,
+recordLabel,
+distributor,
+country,
+composer,
+league,
+spouse,
+relative,
+album,
+associatedMusicalArtist,
 parent,
 birthPlace,
 series,
-draftTeam,
-location,
-language,
-developer,
-isPartOfMilitaryConflict,
-genre,
-headquarter,
-battle,
-manufacturer,
-builder,
-crosses,
-largestCity,
-keyPerson,
-relatedMeanOfTransportation,
-militaryUnit,
-leader,
-federalState,
-operator,
-parentCompany,
-archipelago,
-ground,
-assembly,
-publisher,
-employer,
-formerBandMember,
-trainer]
-  max_examples_quantity: 400
+draftTeam]
+  max_examples_quantity: 200
   uri_pattern: "http://dbpedia.org/ontology/"
   preprocessing:
     tokenizer: DefaultTokenizer
-    text_cleaner: DefaultTextCleaner
+    text_cleaner: WikipediaTextCleaner
     radical_extractor: DefaultRadicalExtractor
+    sentence_extractor: OpenNLPSentenceExtractor
   filters: []
   feature_extractors: [LexicalExtractor, ShortestPathExtractor, EntityTypesExtractor]
   dataset_format: arff
-  dataset_name: en_test_400_3
+  dataset_name: entire_sp_200_test
   dataset_folder: ./trainning_data
   db_config:
     db: mysql

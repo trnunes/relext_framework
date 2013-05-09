@@ -116,4 +116,57 @@ module Classification
 			SerializationHelper.write("./ml_models/SVM.model", @native_classifier)
 		end
   end
+
+  class LibLINEARClassifier < WekaClassifier
+  
+    def initialize(options=nil)
+      @property_list =  File.readlines("90_dbpedia_properties_list.txt").map{|prop|prop.gsub("\n","")}
+      instances_file = File.read("trainning_data/prediction_test.arff")
+      
+      ENV['CLASSPATH'] += ";lib\\weka\\LibLINEAR\\lib\\liblinear-1.51-with-deps.jar"
+      ENV['CLASSPATH'] += ";lib\\weka\\LibLINEAR\\LibLINEAR.jar"
+      ENV['CLASSPATH'] += ";lib\\weka\\weka.jar"
+      return self
+    end
+    
+    
+    def start_trainning(dataset_path)
+   
+    end   
+      
+    def predict()
+      system("java weka.classifiers.functions.LibLINEAR -l ml_models/en_500_LR_model.model -T trainning_data/instances.arff -p 0 > prediction_result")
+      prediction_result_matrix = parse_result
+      predictions = prediction_result_matrix.map{|instance_result|
+      
+        prop_index = instance_result[2].split(":")[0].to_i
+        property = @property_list[prop_index - 1]
+        confidence_value = instance_result[3].to_f
+        
+        if(confidence_value > 0.5)
+        
+          [property, confidence_value]
+        
+        else
+          puts "REFUSED PROPERTY: #{property}"
+          ["NO_PROPERTY", confidence_value]
+          
+        end       
+      }
+      puts "PREDICTION RESULT: #{predictions.inspect}" 
+      predictions
+    end
+    
+    def parse_result
+      lines = File.readlines("prediction_result")
+      prediction_results = lines[5..lines.size - 2].map{|instance_line| 
+        instance_line.gsub('\n', "").split(" ").map{|col|col.strip}
+      }
+      
+      prediction_results
+    end
+    
+  end
+#  classifier = Classification::LibLINEARClassifier.new()
+#   prediction_result = classifier.predict
 end

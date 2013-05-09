@@ -1,4 +1,7 @@
 require 'uri'
+require 'java'
+require './lib/secondstring-20120620.jar'
+include_class 'com.wcohen.ss.JaroWinkler'
 module InformationExtraction
   LOG = './log/information_extraction.log'
   File.open(LOG, 'w'){|f| f.write("")}
@@ -8,32 +11,109 @@ module InformationExtraction
   end
   
   class WikipediaCorreferenceAnalyser
-    def initialize(wikipedia_corpus)
+    def initialize(wikipedia_corpus)      
       @wikipedia_corpus = wikipedia_corpus
       @count = 0
     end
     
-    def pre_analyse(sentence, repository=nil)
-      correference = nil
+   def pre_analyse(sentence, repository=nil)      
+     jaro_winkler = JaroWinkler.new 
+     correference = nil
+     title = sentence.principal_entity.label
+     title ||= URI.unescape(sentence.principal_entity.id).scan(/http:\/\/.*\/(.*)/).first.first.split("_").map{|t| t.downcase}
+     puts  "TITLE: #{title.inspect}"
+     bold_names = sentence.text.gsub("'''''", "@").gsub("'''", "@").scan(/(@([^@]*)@)/)
+#      puts '  '+bold_names.inspect
+     if !bold_names.empty?
+       first_name = bold_names[0][1].downcase.gsub("\"", "")
+#       puts "FIRST NAME: #{first_name.inspect}"
+#       puts "Score: " + jaro_winkler.score(first_name, title).to_s
+       if (jaro_winkler.score(first_name, title) >= 0.8)
+         @count+=1
+         InformationExtraction.log("CORREFERENCE #{@count}: #{first_name.inspect}")
+         correference = first_name
+         # puts "CORREFERENCE: #{correference}"
+         unless repository.nil?
+           repository.insert_corref(correference, sentence.id)
+         end   
+       end
+     else
+       first_name = []
+       title_tokens = title.split(" ").map{|w| w.downcase.strip.gsub(/(?=\S)(\d|\W)/,"")}
+       snippet = sentence.principal_entity.snippet
+       tokens = snippet.split(" ").map{|w| w.downcase.strip.gsub(/(?=\S)(\d|\W)/,"")}       
+       
+       correference = first_name.join(" ")
+       if(correference.empty?)
+         i = 0
+         begin
+           
+           possible_ref_tokens = tokens[i..i+(title_tokens.size-1)]
+#           puts "Title TOKENS #{title_tokens.inspect}"
+           ref_tokens = possible_ref_tokens.select{|token| 
+             title_tokens.include?(token.downcase)         
+           } 
+#           puts "POSSIBLE REF TOKENS #{possible_ref_tokens.inspect}"
+#           puts "REF TOKENS #{ref_tokens.inspect}"
+           index_last = 1000
+           ref_tokens.each{|token|
+            
+             token_index = possible_ref_tokens.index(token)
+             diff = token_index - index_last
+             if(diff > 1)
+               diff.times do |i|
+                 first_name << possible_ref_tokens[(index_last+1) + i]
+               end              
+             else
+               first_name << token
+             end
+             index_last = token_index
+             
+            }
+#            puts "FIRST NAME: #{first_name.inspect}"
+            if !first_name.empty?
+              correference = first_name.join(" ")
+              break 
+            end
+            i+= title_tokens.size
+#            puts "I: #{i}"
+         end while i < tokens.size
       
-      title = URI.unescape(sentence.principal_entity.id).scan(/http:\/\/.*\/(.*)/).first.first.split("_").map{|t| t.downcase}
-      # puts  "TITLE: #{title.inspect}"
-      bold_names = sentence.text.gsub("'''''", "@").gsub("'''", "@").scan(/(@([^@]*)@)/)
-      # puts '  '+bold_names.inspect
-      if !bold_names.empty?
-        first_name = bold_names[0][1].downcase.gsub("\"", "").split(" ")
-        # puts "FIRST NAME: #{first_name.inspect}"
-        if (first_name - title).empty?
-          @count+=1
-          InformationExtraction.log("CORREFERENCE #{@count}: #{first_name.inspect}")
-          correference = first_name.join(" ")
-          # puts "CORREFERENCE: #{correference}"
-           unless repository.nil?
-            repository.insert_corref(correference, sentence.id)
+       end
+    end
+    
+     correference
+    end
+    
+    def get_most_frequent_pronoun(text, entity_label = nil)
+      pronouns_list = [ "theirs","them","themselves","these","they","this","those", "it","its",
+      "itself","he","him", "his", "she", "her","hers","herself","himself"]
+      pronoun_freq = 0
+      most_frequent_pronoun = nil
+      pronouns_list.each{|pronoun|        
+        occurrence_count = text.downcase.scan(/ #{pronoun} /).size
+        if(entity_label)
+          text.split(",").each{|piece|
+          
+            if(piece.split(" ").select{|token|token.strip.downcase == pronoun}.size > 0 && piece.include?(entity_label))
+              if(most_frequent_pronoun != "he" && most_frequent_pronoun != "she")
+                puts "MOST FREQUENT PRONOUN: #{most_frequent_pronoun} adf"
+                puts most_frequent_pronoun != "he"
+                puts "PRONOUN: #{pronoun}"
+                most_frequent_pronoun = pronoun
+              end
+            end
+          }
+        else
+          if occurrence_count > pronoun_freq
+            puts "OCCURRENCE: #{occurrence_count}"
+            most_frequent_pronoun = pronoun
+            pronoun_freq = occurrence_count
           end
         end
-      end
-      correference
+      }
+      
+      most_frequent_pronoun
     end
     
     def analyse(sentence, subject_list,repository=nil)
@@ -43,7 +123,7 @@ module InformationExtraction
       clean_text = stc_text.downcase
       
       intersec = clean_text.split(" ") & title
-      text = @wikipedia_corpus.find_entity_article(sentence.principal_entity.id)      
+      text = @wikipedia_corpus.find_entity_article(sentence.principal_entity.id) 
       
       # if intersec.size > 1
         # @count +=1
@@ -53,17 +133,8 @@ module InformationExtraction
         # correference = stc_text.downcase.scan(/#{intersec.join(" ")}/)
         # InformationExtraction.log(" CORREFERENCE #{@count}: #{correference.inspect}")
       # end
-      pronouns_list = [ "theirs","them","themselves","these","they","this","those", "it","its",
-      "itself","he","him", "his", "she", "her","hers","herself","himself"]
-      pronoun_freq = 0
-      most_frequent_pronoun = nil
-      pronouns_list.each{|pronoun|        
-        occurrence_count = text.downcase.scan(/ #{pronoun} /).size       
-        if occurrence_count > pronoun_freq
-          most_frequent_pronoun = pronoun
-          pronoun_freq = occurrence_count
-        end
-      }      
+
+      most_frequent_pronoun = get_most_frequent_pronoun(text)  
       correfence = nil
       subject_list.each{|subj_part|
         subj_label = subj_part.label

@@ -12,7 +12,9 @@ require './repositories.rb'
 require './corpus.rb'
 require './bow_builder.rb'
 require './nlp.rb'
+require './prediction.rb'
 require 'information_extraction.rb'
+require './feature_extraction_prediction.rb'
 module RelationExtractor
 	include Model
   
@@ -31,8 +33,7 @@ module RelationExtractor
   def self.test_gov_extractor
     config = ConfigModule::Config.new
     corpus = config.corpus
-    corref_analyser = InformationExtraction::WikipediaCorreferenceAnalyser.new(corpus)
-    
+    corref_analyser = InformationExtraction::WikipediaCorreferenceAnalyser.new(corpus)    
     sentence_repository = config.sentences_repository
     sentences = sentence_repository.find_sentence_by_relation("http://dbpedia.org/ontology/album", 5, 0)
     gov_extractor = FeatureExtraction::GovNodesExtractor.new(sentence_repository)
@@ -193,6 +194,7 @@ module RelationExtractor
   def self.find_test_sentences
 	  entities = ["http://dbpedia.org/resource/Stevie_Nicks"]
 	  config = ConfigModule::Config.new
+    
 	  relations = config.relations_hash
     relations_repository = config.relations_repository
     sentences_repository = config.sentences_repository
@@ -210,14 +212,10 @@ module RelationExtractor
               
         link_to_target = sentence_markups.select{|markup|  
           markup[1].split("|")[0] == label
-        }
-              
-              stc if !link_to_target.empty?
-            }      
-		  }
-      
-	}
-  
+        }              
+        stc if !link_to_target.empty?
+      }      
+		} 
   end
   
   def self.mine_examples
@@ -294,17 +292,19 @@ module RelationExtractor
     puts "RELATIONS SIZE: #{relations.size}"
     relations.each{|relation, offset|
       puts relation
-      sentences = sentence_repository.find_sentence_by_relation(relation, max_example_qtd, 501)
-      puts "QTD: #{sentences.size}"      
-      # if(sentences.empty?)
-        # sentences = sentence_repository.find_sentence_by_relation(relation, max_example_qtd, 0)
-      # end
+      sentences = sentence_repository.find_sentence_by_relation(relation, max_example_qtd, 201)
+#      puts "QTD: #{sentences.size}"      
+       if(sentences.empty?)
+         sentences = sentence_repository.find_sentence_by_relation(relation, max_example_qtd, 0)
+       end
       filtered_sentences = Filtering.do_filter(sentences)
-      
-      # if(filtered_sentences.size < 500)
-        # offset20_percent = filtered_sentences.size - (filtered_sentences.size * 0.2) - 1
-        # filtered_sentences = filtered_sentences[(offset20_percent.to_i + 1)..filtered_sentences.size]
-      # end
+      puts "QTD Novamente: #{sentences.size}"
+       if(filtered_sentences.size < 200)
+         offset20_percent = filtered_sentences.size - (filtered_sentences.size * 0.2) - 1
+#         filtered_sentences = filtered_sentences[(offset20_percent.to_i + 1)..filtered_sentences.size]
+#         Generate training set
+#         filtered_sentences = filtered_sentences[0..offset20_percent.to_i]
+       end
       # puts sentences.inspect
       i = 0
       filtered_sentences.each{|sentence|          
@@ -334,6 +334,13 @@ module RelationExtractor
     @@config
   end
 	
-	self.find_test_sentences
-	
+  def self.predict()
+#    Prediction.predict("Morris Smith Miller (July 31, 1779 -- November 16, 1824) was a United States Representative from New York. Born in New York City, he graduated from Union College in Schenectady in 1798.")
+#    Prediction.recognize_entities_from_google_dataset
+    Prediction.generate_google_test_set
+  end
+#  predict
+#	self.find_test_sentences
+	self.do
+#  compute_dep_list
 end

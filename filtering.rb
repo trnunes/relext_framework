@@ -22,7 +22,7 @@ module Filtering
 	class WikiLinkFilter < SentenceFilter
 		
 		def do_filter(sentence_list)
-      filtered_sentence_list = sentence_list.select{|stc| 
+      filtered_sentence_list = sentence_list.select{|stc|      
         label ||= stc.secondary_entity.scan(/http:\/\/.*\/(.*)/).first.first.gsub("_", " ")
         sentence_markups = stc.text.to_s.scan(/(\[\[([^\]]*)\]\])/)
         

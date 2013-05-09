@@ -1,6 +1,6 @@
 module DatasetGeneration
-	def self.generate(feature_matrix, format)
-		format.save(feature_matrix)
+	def self.generate(feature_matrix, format, types=nil)
+		format.save(feature_matrix, types)
 	end
 	
   def self.create_formatter(format, dataset_path)
@@ -37,12 +37,15 @@ module DatasetGeneration
       header      
     end
     
-		def save(matrix)
+		def save(matrix, types=nil)
       output_file_path = @dataset_path
 			output_file_path ||= "./trainning_data/dataset.csv"
 			File.open(output_file_path, 'w')			
 			i = 0
-      types = matrix.map{|row| row[row.size - 1]}.uniq      
+      if(!types)
+        types = matrix.map{|row| row[row.size - 1]}.uniq      
+      end
+      
       header = mount_header(matrix[0], types[1..types.size-1])
       header << "\n@DATA\n"
       File.open(output_file_path, 'a'){|f| f.write(header)}

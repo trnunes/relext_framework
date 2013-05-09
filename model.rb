@@ -35,9 +35,16 @@ module Model
 	
 	class Entity
 		attr_accessor :id, :label, :types
-		def initialize(id)
-			@id = id
-      @types = []
-		end
+    attr_accessor :surface_form, :snippet
+    
+    def initialize(id, label=nil, types=nil, surface_form=nil)
+      @id = id
+      @label = label
+      @types = types
+      @surface_form = surface_form
+      @types ||= []
+    end    
+
+    
 	end
 end
