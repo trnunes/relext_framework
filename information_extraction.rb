@@ -152,4 +152,46 @@ module InformationExtraction
       correfence
     end    
   end 
+  
+  class WikipediaSecondaryEntityRecognizer
+    
+    def recognize(sentence)
+      sentence.secondary_entity.id.scan(/http:\/\/.*\/(.*)/).first.first.gsub("_", " ")
+      sentence_markups = text.to_s.scan(/(\[\[([^\]]*)\]\])/)
+      FeatureExtraction.log("SENTENCE: #{sentence.text}")
+      FeatureExtraction.log("LABEL: #{label}")
+      
+      # Finding the secondary entity mention and substituting by the SE2 label
+      sentence_markups.each{|markup|        
+        if markup[1].split("|")[0] == label       
+          text.gsub!(markup[0].to_s, "SE2") 
+          FeatureExtraction.log("LABEL FOUND!: #{text}")
+        else
+          text.gsub!(markup[0].to_s, markup[1].split("|")[0]) 
+          FeatureExtraction.log("LABEL NOT FOUND!: #{sentence_markups.inspect}")
+        end
+      }
+    end 
+  end
+  
+  class MarkedEntityRecognizer
+        
+    def recognize(sentence)
+      sentence.secondary_entity.id.scan(/http:\/\/.*\/(.*)/).first.first.gsub("_", " ")
+      sentence_markups = text.to_s.scan(/(\[\[([^\]]*)\]\])/)
+      FeatureExtraction.log("SENTENCE: #{sentence.text}")
+      FeatureExtraction.log("LABEL: #{label}")
+      
+      # Finding the secondary entity mention and substituting by the SE2 label
+      sentence_markups.each{|markup|        
+        if markup[1].split("|")[0] == label       
+          text.gsub!(markup[0].to_s, "SE2") 
+          FeatureExtraction.log("LABEL FOUND!: #{text}")
+        else
+          text.gsub!(markup[0].to_s, markup[1].split("|")[0]) 
+          FeatureExtraction.log("LABEL NOT FOUND!: #{sentence_markups.inspect}")
+        end
+      }
+    end 
+  end
 end

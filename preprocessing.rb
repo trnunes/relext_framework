@@ -126,6 +126,11 @@ module Preprocessing
 		end
 	end
 	
+	class DefaultTokenNormalizer
+	  def normalize(token)
+	    token.downcase.strip.removeaccents.stem
+	  end
+	end
 	class OpenNLPTokenizer < DefaultTokenizer
 		def tokenize(sentence)			
 		end
@@ -165,6 +170,10 @@ module Preprocessing
 		def extract_radical(word)
 			word.stem
 		end
+		def normalize(word)
+		  extract_radical(word)
+		end
+		  
 	end
   
   class PortugueseRadicalExtractor < DefaultRadicalExtractor

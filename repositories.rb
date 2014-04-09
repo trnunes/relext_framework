@@ -1,6 +1,7 @@
 require 'java'
 require 'uuidtools'
 require './model.rb'
+require './lib/mysql-connector-java-5.1.18-bin'
 require 'jdbc/mysql'
 require './config.rb'
 
@@ -13,13 +14,10 @@ module Repositories
     case db
       when 'mysql'
         return MysqlRepository.new(connection_string)
-        break;
       when 'sparql'
         return SparqlRepository.new(connection_string)
-        break;
       when 'bioinfer'
         return BioInferRepository.new(connection_string)
-        break;
       else
         raise('SGBD not supported!')
     end
@@ -99,12 +97,157 @@ module Repositories
 		end
   end
   
+  class SingleTableRepository
+    def initialize(connection_string)
+      @connection_string = connection_string
+      get_connection
+    end
+    
+    def execute_update(sql_query, parameter_values)
+      ps = @conn.prepareStatement(sql_query)
+      puts sql_query
+      for i in(0..parameter_values.size-1)
+        if parameter_values[i].class == Fixnum
+          ps.setInt(i+1, parameter_values[i])
+        else
+          ps.setString(i+1, parameter_values[i])
+        end
+      end
+      puts ps.to_s
+      rs = ps.executeUpdate()
+      rs
+    end
+    
+    def get_connection
+      @conn ||= JavaSql::DriverManager.getConnection("jdbc:mysql://localhost:3306/pedro_sentences_db?user=root&password=1234")      
+      @conn
+    end
+    
+    def save_features(sentence, features, type)            
+      query = "insert into features values(?, ?, ?)"
+      
+      features.each{|feature|
+        begin
+          execute_update(query, [sentence.id.to_i, feature, type.to_s])
+        rescue Exception => e
+          next
+        end
+      }            
+    end
+    
+    def find_dependency_list(sentence)
+      query = "select d.dep, d.gov, d.relation from dependencies d where d.stc_id = '#{sentence.id.to_i}'"
+      rs = execute_query(query)
+      dep_list = []
+      while rs.next do
+        dep_str = rs.getString(1)
+        dep = NLP::Node.new(dep_str.split("-idx-")[0], dep_str.split("-idx-")[1].to_i)
+        
+        gov_str = rs.getString(2)        
+        gov = NLP::Node.new(gov_str.split("-idx-")[0], gov_str.split("-idx-")[1].to_i)
+        relation = rs.getString(3)        
+        dep_list << NLP::Dependency.new(gov, dep, relation)
+      end
+      dep_list
+    end
+    
+    def save_dependency_list(dependency_list, sentence)
+      dependency_list.each{|typed_dependency|
+        id = UUIDTools::UUID.random_create.to_s
+        stc_id = sentence.id.to_i
+        rel = typed_dependency.relation
+        gov = typed_dependency.gov.to_s
+        dep = typed_dependency.dep.to_s
+        query = "insert into dependencies values(?, ?, ?, ?, ? )"
+        execute_update(query, [stc_id, id, rel, gov, dep])
+      }
+    end
+    
+    def count_instances(relation)
+      sql = "select count(*) from examples s where s.relation = '#{relation}'"
+      rs = @conn.prepareStatement(sql).executeQuery()
+      rs.next()
+      rs.getInt(1)
+    end
+
+    def find_sentence_by_relation(relation, limit)      
+      sql = "select * from examples s where s.relation = '#{relation}' LIMIT #{limit}"      
+      puts sql
+      mount_sentence_list(execute_query(sql))
+    end
+
+    def find_types_entity1(sentence_id)
+        sql = "select s.class_1 from examples s where s.id = #{sentence_id}"
+        rs = execute_query(sql)
+        rs.next()
+        rs.getString(1)
+    end
+    
+    def find_types_entity2(sentence_id)
+        sql = "select s.class_2 from examples s where s.id = #{sentence_id}"
+        rs = execute_query(sql)
+        rs.next()
+        rs.getString(1)
+    end
+    
+    def execute_query(sql_query, parameter_values=nil)      
+      puts sql_query
+      
+      if parameter_values
+        # puts "PARAMETER: #{parameter_values[0]} #{parameter_values[0].class}"
+        ps = @conn.prepareStatement(sql_query)
+        for i in(0..parameter_values.size-1)
+          ps.setString(i+1, parameter_values[i])
+        end         
+        rs = ps.executeQuery()
+      else        
+        stmt = @conn.createStatement
+        # puts "CHEGUEI AQUI"
+        rs = stmt.executeQuery(sql_query)
+      end      
+      rs
+    end
+    
+    def mount_sentence_list(result_set)
+      sentence_list = []
+      while result_set.next do
+        sentence = Model::Sentence.new
+        sentence.id = result_set.getInt(1).to_s
+        sentence.text = result_set.getString(2)
+        puts "id: #{sentence.id}"
+        # puts "TEXT: #{sentence.text}"
+        entity1 = Model::Entity.new(result_set.getString(3))
+        entity1.types = [find_types_entity1(sentence.id)]      
+        sentence.principal_entity = entity1
+        
+        entity2 = Model::Entity.new(result_set.getString(4))
+        entity2.types = [find_types_entity2(sentence.id)]        
+        sentence.secondary_entity = entity2
+        
+        sentence.relation = result_set.getString(5)        
+        sentence_list << sentence
+      end
+      sentence_list
+    end
+  end
+  
 	class MysqlRepository
+	  
 		def initialize(connection_string)
 			@connection_string = connection_string
 			get_connection
 		end
-		
+	  
+	  def execute_update(sql_query, parameter_values)
+      ps = @conn.prepareStatement(sql_query)
+      for i in(0..parameter_values.size-1)
+        ps.setString(i+1, parameter_values[i])
+      end
+      puts ps.to_s
+      rs = ps.executeUpdate()
+      rs
+    end
+    
 		def get_connection
 			@conn ||= JavaSql::DriverManager.getConnection(@connection_string)      
 			@conn

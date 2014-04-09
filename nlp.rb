@@ -28,7 +28,7 @@ module NLP
     end
     
     def compute_dependency_list(sentence)
-      text = sentence.clean_text.strip
+      text = sentence.text.strip
       text << "." if text[text.size - 1].chr != "."
       File.open('input.txt', 'w'){|f| f.write(text << "\n")}
       parse_string = %x[./lib/DepPattern-2.1/dp.sh -a treetagger pt input.txt]

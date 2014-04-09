@@ -274,6 +274,27 @@ module RelationExtractor
     end
   end
   
+  def self.populate_database
+    require 'csv'
+    i = 0
+    CSV.foreach("d:/testesRelationExtraction/repository_production-examples-100.csv") do |row|
+      sentence_text = row[1]
+      source_page = row[2]
+      target_page = row[3]
+      property = row[4]
+      class_source = row[5]
+      class_target = row[6]
+      puts sentence_text
+      i+=1
+      break if i == 10      
+    end
+    
+    f2 = File.open("d:/testesRelationExtraction/repository_production-examples-100.csv", "w")
+    f.each_line do |line|
+      line_columns = line.split(",")  
+    end
+  end
+  
   def self.train_classifier
     dataset_path = config.dataset_path
     classifier = config.classifier
