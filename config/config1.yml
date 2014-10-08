@@ -23,26 +23,9 @@ dataset_generation:
   enabled: 'yes'
   target_relations: [
 producer,
-isPartOf,
-writer,
-region,
-award,
-musicalBand,
-riverMouth,
-recordLabel,
-distributor,
-country,
-composer,
-league,
-spouse,
-relative,
-album,
-associatedMusicalArtist,
-parent,
-birthPlace,
-series,
-draftTeam]
-  max_examples_quantity: 200
+isPartOf
+]
+  max_examples_quantity: 10
   uri_pattern: "http://dbpedia.org/ontology/"
   preprocessing:
     tokenizer: DefaultTokenizer
@@ -56,7 +39,7 @@ draftTeam]
   dataset_folder: ./trainning_data
   db_config:
     db: mysql
-    location: "jdbc:mysql://localhost:3306/sentence_db?user=root&password=db@dm348"
+    location: "jdbc:mysql://139.82.71.42:3306/my_dataset?user=root&password=1234"
   
 trainning:
   enabled: 'no'

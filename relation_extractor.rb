@@ -12,7 +12,7 @@ require './repositories.rb'
 require './corpus.rb'
 require './bow_builder.rb'
 require './nlp.rb'
-require './prediction.rb'
+#require './prediction.rb'
 require 'information_extraction.rb'
 require './feature_extraction_prediction.rb'
 module RelationExtractor
@@ -295,13 +295,13 @@ module RelationExtractor
     end
   end
   
-  def self.train_classifier
-    dataset_path = config.dataset_path
-    classifier = config.classifier
-    cross_validation_folds = config.cross_validation_folds
-    classifier.start_trainning(dataset_path)      
-    classifier.get_default_evaluator.cross_validate(cross_validation_folds) if cross_validation_folds
-  end
+  #  def self.train_classifier
+  #   dataset_path = config.dataset_path
+  # classifier = config.classifier
+  # cross_validation_folds = config.cross_validation_folds
+  # classifier.start_trainning(dataset_path)
+  # classifier.get_default_evaluator.cross_validate(cross_validation_folds) if cross_validation_folds
+  #end
   
   def self.generate_dataset
     sentence_repository = config.sentences_repository
@@ -348,7 +348,7 @@ module RelationExtractor
     @@config = ConfigModule::Config.new    
     mine_examples if config.minning_enabled
     generate_dataset if config.dataset_generation_enabled
-    train_classifier if config.trainning_enabled
+    #train_classifier if config.trainning_enabled
 	end
   
 	def self.config
@@ -358,7 +358,7 @@ module RelationExtractor
   def self.predict()
 #    Prediction.predict("Morris Smith Miller (July 31, 1779 -- November 16, 1824) was a United States Representative from New York. Born in New York City, he graduated from Union College in Schenectady in 1798.")
 #    Prediction.recognize_entities_from_google_dataset
-    Prediction.generate_google_test_set
+#  Prediction.generate_google_test_set
   end
 #  predict
 #	self.find_test_sentences

@@ -314,12 +314,9 @@ module Repositories
     end
     
     def find_all_shortest_paths
-      conn = JavaSql::DriverManager.getConnection("jdbc:mysql://localhost:3306/sentence_db?user=root&password=db@dm348")
       path_query = "select path from sentence_paths where type = 'SHORTEST-PATH'"
-      stmt = conn.createStatement
-#			rs = execute_query(path_query)
-      rs = stmt.executeQuery(path_query)
-      path_list = []      
+      rs = execute_query(path_query)
+      path_list = []
       while rs.next do
         path = rs.getString(1)
         path_list << path.split(",")
@@ -329,19 +326,14 @@ module Repositories
     end
     
     def find_all_classes(pattern=nil)
-      conn = JavaSql::DriverManager.getConnection("jdbc:mysql://localhost:3306/sentence_db?user=root&password=db@dm348")
-      
-      stmt = conn.createStatement
-			
       classes_query = "select distinct class from uri_classes"
       classes_query << " where class like '%#{pattern}%'" if pattern
 		  	
-#			rs = execute_query(classes_query)
-      rs = stmt.executeQuery(classes_query)
-			dbpedia_ont_classes = []
-			while rs.next do
-				dbpedia_ont_classes << rs.getString(1)
-			end
+      rs = execute_query(classes_query)
+      dbpedia_ont_classes = []
+      while rs.next do
+          dbpedia_ont_classes << rs.getString(1)
+      end
       dbpedia_ont_classes
     end
     
