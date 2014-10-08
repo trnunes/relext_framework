@@ -110,7 +110,7 @@ module NLP
     while actual_index != target_node.index do
       predecessor_index = previous[actual_index]
       if predecessor_index.nil?
-        FeatureExtraction.log("DISCONTINUED PATH")
+        FeatureExtraction.log("DISCONTINUED PATH: #{source_node.to_s} -> #{target_node.to_s}" )
         break
       end
       predecessor = nodes_by_index[predecessor_index]

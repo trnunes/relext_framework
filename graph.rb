@@ -37,7 +37,7 @@ module Graph
       shortest_distances[source] = 0      
       while pq.size != 0        
         v = pq.pop
-        puts v.to_i
+
         visited[v] = true        
         if edges[v]        
           edges[v].each do |w|          

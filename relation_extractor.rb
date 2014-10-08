@@ -12,7 +12,7 @@ require './repositories.rb'
 require './corpus.rb'
 require './bow_builder.rb'
 require './nlp.rb'
-#require './prediction.rb'
+
 require 'information_extraction.rb'
 require './feature_extraction_prediction.rb'
 module RelationExtractor
@@ -295,13 +295,13 @@ module RelationExtractor
     end
   end
   
-  #  def self.train_classifier
-  #   dataset_path = config.dataset_path
-  # classifier = config.classifier
-  # cross_validation_folds = config.cross_validation_folds
-  # classifier.start_trainning(dataset_path)
-  # classifier.get_default_evaluator.cross_validate(cross_validation_folds) if cross_validation_folds
-  #end
+  def self.train_classifier
+    dataset_path = config.dataset_path
+    classifier = config.classifier
+    cross_validation_folds = config.cross_validation_folds
+    classifier.start_trainning(dataset_path)      
+    classifier.get_default_evaluator.cross_validate(cross_validation_folds) if cross_validation_folds
+  end
   
   def self.generate_dataset
     sentence_repository = config.sentences_repository
@@ -313,18 +313,17 @@ module RelationExtractor
     puts "RELATIONS SIZE: #{relations.size}"
     relations.each{|relation, offset|
       puts relation
-      sentences = sentence_repository.find_sentence_by_relation(relation, max_example_qtd, 201)
+      sentences = sentence_repository.find_sentence_by_relation(relation, max_example_qtd, 501)
 #      puts "QTD: #{sentences.size}"      
        if(sentences.empty?)
          sentences = sentence_repository.find_sentence_by_relation(relation, max_example_qtd, 0)
        end
       filtered_sentences = Filtering.do_filter(sentences)
       puts "QTD Novamente: #{sentences.size}"
-       if(filtered_sentences.size < 200)
+       if(filtered_sentences.size < 500)
          offset20_percent = filtered_sentences.size - (filtered_sentences.size * 0.2) - 1
 #         filtered_sentences = filtered_sentences[(offset20_percent.to_i + 1)..filtered_sentences.size]
-#         Generate training set
-#         filtered_sentences = filtered_sentences[0..offset20_percent.to_i]
+         filtered_sentences = filtered_sentences[0..offset20_percent.to_i]
        end
       # puts sentences.inspect
       i = 0
@@ -348,7 +347,7 @@ module RelationExtractor
     @@config = ConfigModule::Config.new    
     mine_examples if config.minning_enabled
     generate_dataset if config.dataset_generation_enabled
-    #train_classifier if config.trainning_enabled
+    train_classifier if config.trainning_enabled
 	end
   
 	def self.config
@@ -358,7 +357,7 @@ module RelationExtractor
   def self.predict()
 #    Prediction.predict("Morris Smith Miller (July 31, 1779 -- November 16, 1824) was a United States Representative from New York. Born in New York City, he graduated from Union College in Schenectady in 1798.")
 #    Prediction.recognize_entities_from_google_dataset
-#  Prediction.generate_google_test_set
+    Prediction.generate_google_test_set
   end
 #  predict
 #	self.find_test_sentences
