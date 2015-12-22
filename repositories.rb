@@ -25,14 +25,16 @@ module Repositories
     end
 
     class FileRepository
+
         def initialize(folder)
+            @folder = folder
         end
         
         def save_features(sentence, features, type)
-            file_name = sentence.id + "_" + type
-            
+            file_name = "SENTENCE_#{sentence.id}"
+
             features.each{|feature|
-                
+                File.open("#{@folder}/#{file_name}", 'a'){|f| f.puts("#{feature}||#{type}")}
             }
         end
     end

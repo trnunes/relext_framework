@@ -231,15 +231,6 @@ end
       ep = find_principal_entity(tdl)
       puts "EP: #{ep}"
       se = find_secondary_entity(tdl)
-      sbj_td = select_subject(tdl).first
-      if ep == nil && sbj_td != nil
-        
-        if sbj_td.gov.index < sbj_td.dep.index
-          ep = sbj_td.gov
-        else
-          ep = sbj_td.dep
-        end
-      end
       if ep != nil && se != nil
         dijkstra = Graph::Dijkstra.new()
         # computing the undirected shortest path

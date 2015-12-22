@@ -44,7 +44,9 @@ module GenericFeatureExtraction
 		attr_accessor :normalizer, :tokenizer
 	
 		def extract(sentence)
-			tokenizer.tokenize(sentence).map{|token| normalizer.normalize(token)}
+			tokens = tokenizer.tokenize(sentence).map{|token| normalizer.normalize(token).gsub(/\W/, "")}
+            tokens.delete("")
+            tokens
 		end
 		
 	end  
@@ -57,11 +59,19 @@ module GenericFeatureExtraction
       entity1_match = @primary_entity_recognizer.call(sentence)      
       entity2_match = @secondary_entity_recognizer.call(sentence)
       
-      sentence.text = sentence.text.dup.gsub(entity1_match[0], "Entity1").gsub(entity2_match[0], "Entity2")
+      if(!entity1_match.nil?)
+          sentence.text = sentence.text.sub(entity1_match[0], "Entity1")
+      end
+      
+      if(!entity2_match.nil?)
+          sentence.text = sentence.text.sub(entity2_match[0], "Entity2")
+      end
+      
       dependency_list = @dependency_list_finder.call(sentence)
+      
       entity1 = nil
       entity2 = nil
-      puts "DEP LIST #{dependency_list}"
+
       dependency_list.each{|dp|
         entity1 =  dp.dep if dp.dep.label.include?("Entity1")
         entity1 =  dp.gov if dp.gov.label.include?("Entity1")
@@ -72,8 +82,16 @@ module GenericFeatureExtraction
         dijkstra = Graph::Dijkstra.new()
         # computing the undirected shortest path
         path, direction_hash = NLP.compute_shortest_path(dependency_list, entity1, entity2, dijkstra)
-        result = path.map{|node|direction_hash[node]+node.label.to_s}.join
-        FeatureExtraction.log(" SHORTEST PATH: #{result}")        
+        result =[]
+        
+        previous_node = path.delete(path[0])
+        path.each{|node|
+            result << previous_node.label.to_s + direction_hash[node] + node.label.to_s
+            previous_node = node
+        }
+        
+      else
+
       end
       result
     end

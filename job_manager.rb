@@ -10,48 +10,22 @@ module JobManager
     # import da classe do driver jdbc para o mysql
     java_import 'com.mysql.jdbc.Driver'
     
+    @@conn_dataset = nil
+    @@database_name = nil
+    @@password = nil
+    
     module JavaSql
-		include_package 'java.sql'
-	end
+		  include_package 'java.sql'
+		end
     
     # recupera uma conexão para um dataset de exemplos
-    def self.get_connection_pedro_dataset
-        if(@@conn_pedro_dataset.nil?)
+    def self.get_connection_dataset
+        if(@@conn_dataset.nil?)
             mysql_driver = Driver.new()
             puts "DATABASE ADDRESS:#{@@database_address}"
-            @@conn_pedro_dataset ||= mysql_driver.connect("jdbc:mysql://#{@@database_address.strip}:3306/pedro_dataset?user=root&password=1234", nil)
+            @@conn_dataset ||= mysql_driver.connect("jdbc:mysql://#{@@database_address.strip}:3306/#{@@database_name}?user=root&password=#{@@password}", nil)
         end
-        @@conn_pedro_dataset
-    end
-
-    def self.get_connection_my_dataset
-        mysql_driver = Driver.new()
-        puts "DATABASE ADDRESS:#{@@database_address}"
-        @@conn_my_dataset ||= mysql_driver.connect("jdbc:mysql://#{@@database_address.strip}:3306/my_dataset?user=root&password=1234", nil)
-        @@conn_my_dataset
-    end
-
-    def self.find_matches(db)
-        @@database_address = db
-        get_connection_pedro_dataset
-        get_connection_my_dataset
-        query = "SELECT distinct source_page FROM sentences"
-        result_set = @@conn_my_dataset.prepareStatement(query).executeQuery()
-
-        while result_set.next do
-            entity_1 = result_set.getString(1)
-            query_pedro_dataset = "SELECT distinct class_1 from examples where entity_1 like '%" + entity_1.scan(/\//).last
-            pedro_result = @@conn_pedro_dataset.prepareStatement(query_pedro_dataset).executeQuery()
-            while pedro_result.next do
-                class_1 = pedro_result.getString(1)
-                puts class_1
-                insert = "update uri_classes set pedro_class='#{class_1}' where uri = '#{source_page}'"
-                @@conn_my_dataset.executeUpdate(insert)
-            end
-
-        end
-        available_tasks
-
+        @@conn_dataset
     end
 
     class Task
@@ -74,8 +48,10 @@ module JobManager
     end
 
     # Inicia várias threads que irão extrair features dos exemplos e armazená-las em um banco de dados
-    def self.start_jobs(number_of_jobs, database_address)
+    def self.start_jobs(number_of_jobs, database_address, database_name, password)
         @@database_address = database_address
+        @@database_name = database_name
+        @@password = password
         threads = []
         tasks = find_available_tasks(number_of_jobs)
         tasks.each{|task|
@@ -103,7 +79,7 @@ module JobManager
 
     # Recupera a próxima tarefa no banco
     def self.find_next_available_task
-        mysql_connection = get_connection_pedro_dataset
+        mysql_connection = get_connection_dataset
         query = "SELECT * FROM tasks WHERE status='AVAILABLE' LIMIT #{1}"
         result_set = mysql_connection.prepareStatement(query).executeQuery()
         available_task = nil
@@ -118,7 +94,7 @@ module JobManager
     end
 
     def self.find_available_tasks(number_of_jobs)
-        mysql_connection = get_connection_pedro_dataset
+        mysql_connection = get_connection_dataset
         query = "SELECT * FROM tasks WHERE status='AVAILABLE' LIMIT #{number_of_jobs}"
         result_set = mysql_connection.prepareStatement(query).executeQuery()
         available_tasks = []
@@ -133,7 +109,7 @@ module JobManager
     end
     
     def self.create_new_task(offset, limit)
-        mysql_connection = get_connection_pedro_dataset
+        mysql_connection = get_connection_dataset
         
         query = "insert into tasks values(?, ?, ?)"
  
@@ -156,14 +132,14 @@ module JobManager
     
     def self.change_task_status(task_offset, new_status, message)
         query = "UPDATE tasks SET status='#{new_status}', message='#{message}' WHERE offset=#{task_offset}"
-        mysql_connection = get_connection_pedro_dataset
+        mysql_connection = get_connection_dataset
         
         statement = mysql_connection.createStatement()
         statement.executeUpdate(query)
     end
     
     def self.count_sentences
-        mysql_connection = get_connection_pedro_dataset
+        mysql_connection = get_connection_dataset
         query = "select count(*) from examples s"
         result_set = mysql_connection.prepareStatement(query).executeQuery()
         result_set.next()
@@ -173,5 +149,5 @@ module JobManager
     def self.allocate_task(task)
         change_task_status(task.offset, "ONPROGRESS", "")
     end
-    start_jobs(ARGV[0].to_i, ARGV[1].to_s)
+    start_jobs(ARGV[0].to_i, ARGV[1].to_s, ARGV[2].to_s, ARGV[3].to_s)
 end
